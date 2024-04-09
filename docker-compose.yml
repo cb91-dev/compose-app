@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+# FRONT-END SERVICE
+  front-end:
+    build: ./front-end
+    container_name: front-end
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    command: serve -s build -l 3000
+
+# API SERVICE
+  api:
+    build: ./api
+    container_name: api
+    command: npm run start
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - HOST=http://sample-app.com
+      - MONGO_URL=mongodb://api_db:27017/api
+      - AUTH_URL=http://auth:3002
+    depends_on:
+      - api_db
+  # API DB
+  api_db:
+    image: mongo:latest
+    container_name: compose-api-db
+    volumes:
+      - 'mongodb_api:/data/db'
+
+# AUTH SERVICE
+  auth:
+    build: ./auth
+    container_name: auth
+    command: npm run start
+    restart: unless-stopped
+    environment:
+      - PORT=3002
+      - HOST=http://sample-app.com
+      - MONGO_URL=mongodb://auth_db:27017/auth
+      - API_URL=http://api:3001
+    depends_on:
+      - auth_db
+  # AUTH DB
+  auth_db:
+    image: mongo:latest
+    container_name: compose-auth-db
+    volumes:
+      - 'mongodb_auth:/data/db'
+
+  #NGINX
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf.prod:/etc/nginx/conf.d/nginx.conf
+    depends_on:
+      - front-end
+
+# ALL VOLUMES
+volumes:
+  mongodb_api:
+  mongodb_auth:
