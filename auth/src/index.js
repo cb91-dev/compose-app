@@ -1,18 +1,26 @@
 const express = require('express')
-const { port, host, db, api_url } = require("./config")
-const { connectDb } = require('./dbConnect')
+const { port, host, db, apiUrl } = require("./config")
+const connectToDatabase = require('./dbConnect');
 
+// Setup app
 const app = express()
 
 // Meta data on start up
 const startServer = async () => {
-	app.listen(port, () => {
-		console.log(`Auth is now running on: ${port}`)
-		console.log(`Host address: ${host}`)
-		console.log(`Database: ${db}`)
-		console.log(`Api url: ${api_url}`)
-	})
+    try {
+      await connectToDatabase()
+			app.listen(port, () => {
+				console.log(`Auth is now running on: ${port}`)
+				console.log(`Host address: ${host}`)
+				console.log(`Database: ${db}`)
+				console.log(`Api url: ${apiUrl}`)
+			})
+    } catch (error) {
+      console.error("Failed to start api server")
+    }
 }
+
+
 
 // Sample request to test auth service
 app.get('/test',(req, res) => {
@@ -27,7 +35,5 @@ app.get('/user',(req, res) => {
 	})
 })
 
-connectDb()
-	.on('error', console.log)
-	.on('disconnected', connectDb)
-	.once("open", startServer)
+// Setup database connection
+startServer()

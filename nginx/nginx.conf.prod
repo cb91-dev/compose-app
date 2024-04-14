@@ -1,9 +1,50 @@
 server {
+    # Listen on port 80 (HTTP) for incoming traffic
     listen 80;
-
+    # Define the server name, typically a domain name
     server_name docker-project.com;
 
+    # Root URL path configuration
     location / {
+        # Proxy all requests hitting the root URL to the front-end service running on port 3000
         proxy_pass http://front-end:3000;
+        # Use HTTP 1.1 for the proxied request
+        proxy_http_version 1.1;
+        # Upgrade the connection for WebSocket support
+        proxy_set_header Upgrade $http_upgrade;
+        # Keep the connection alive
+        proxy_set_header Connection 'upgrade';
+        # Pass the original host header to the front-end
+        proxy_set_header Host $host;
+        # Do not cache responses flagged as "upgradable" (important for WebSockets)
+        proxy_cache_bypass $http_upgrade;
     }
-}
+
+    # Configuration for API requests under "/api/"
+    location /api/ {
+        # Proxy API requests to the API service running on port 3001
+        proxy_pass http://api:3001;
+        # Use HTTP 1.1 for the proxied request
+        proxy_http_version 1.1;
+        # Set the host header to the original host of the request
+        proxy_set_header Host $host;
+        # Set the real IP of the client (helpful when logs or security depend on the origin IP)
+        proxy_set_header X-Real-IP $remote_addr;
+        # Include the real IP in the 'X-Forwarded-For' header (standard for identifying the originating IP)
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # Include the scheme (http or https) used by the client in the 'X-Forwarded-Proto' header
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Configuration for Authentication requests under "/auth/"
+    location /auth/ {
+        # Proxy authentication requests to the Auth service running on port 3002
+        proxy_pass http://auth:3002;
+        # Use HTTP 1.1 for the proxied request
+        proxy_http_version 1.1;
+        # Set the host header to the original host of the request
+        proxy_set_header Host $host;
+        # Set the real IP of the client
+        proxy_set_header X-Real-IP $remote_addr;
+        # Include the real IP in the 'X-Forwarded-For' header
+        proxy_set_header X-Forwarded-For $proxy_add_x

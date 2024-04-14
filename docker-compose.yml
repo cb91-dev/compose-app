@@ -1,58 +1,67 @@
-version: '3'
 
 services:
-# FRONT-END SERVICE
+  # FRONT-END SERVICE
   front-end:
     build: ./front-end
     container_name: front-end
     restart: unless-stopped
     ports:
       - "3000:3000"
+    networks:
+      - frontend-net
     command: serve -s build -l 3000
 
-# API SERVICE
+  # API SERVICE
   api:
     build: ./api
     container_name: api
     command: npm run start
     restart: unless-stopped
-    ports:
-      - "3001:3001"
-    environment:
-      - PORT=3001
-      - HOST=http://sample-app.com
-      - MONGO_URL=mongodb://api_db:27017/api
-      - AUTH_URL=http://auth:3002
+    env_file:
+      - api/api.env
     depends_on:
       - api_db
+    networks:
+      - backend-net
   # API DB
   api_db:
-    image: mongo:latest
+    image: mongo
     container_name: compose-api-db
+    env_file:
+      - api/apiDb.env
+    networks:
+      - backend-net
     volumes:
       - 'mongodb_api:/data/db'
+      - './init-mongo/api-init.js:/docker-entrypoint-initdb.d/api-init.js:ro'
+    command: ["mongod", "--auth", "--bind_ip", "0.0.0.0"]
 
-# AUTH SERVICE
+  # AUTH SERVICE
   auth:
     build: ./auth
     container_name: auth
     command: npm run start
     restart: unless-stopped
-    environment:
-      - PORT=3002
-      - HOST=http://sample-app.com
-      - MONGO_URL=mongodb://auth_db:27017/auth
-      - API_URL=http://api:3001
+    env_file:
+      - auth/auth.env 
     depends_on:
       - auth_db
+    networks:
+      - backend-net
   # AUTH DB
   auth_db:
-    image: mongo:latest
+    image: mongo
     container_name: compose-auth-db
+    env_file:
+      - auth/authDb.env
+    networks:
+      - backend-net
     volumes:
       - 'mongodb_auth:/data/db'
+      - './init-mongo/auth-init.js:/docker-entrypoint-initdb.d/auth-init.js:ro'
+    command: ["mongod", "--auth", "--bind_ip", "0.0.0.0"]
 
-  #NGINX
+  # NGINX
   nginx:
     image: nginx:stable-alpine
     container_name: nginx
@@ -62,8 +71,17 @@ services:
       - ./nginx/nginx.conf.prod:/etc/nginx/conf.d/nginx.conf
     depends_on:
       - front-end
+    networks:
+      - frontend-net
+      - backend-net
 
 # ALL VOLUMES
 volumes:
   mongodb_api:
   mongodb_auth:
+
+# NETWORKS
+networks:
+  frontend-net:
+  backend-net:
+    driver: bridge
