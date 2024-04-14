@@ -1,10 +1,9 @@
 const express = require('express')
-const { port, host, authUrl } = require("./config");
+const { port, host, authUrl, MONGO_URL } = require("./config");
 const axios = require('axios')
 const connectToDatabase = require('./dbConnect');
 
 const app = express();
-const MONGO_URL = 'mongodb://admin:securepassword@compose-api-db:27017/api'
 // Meta data on start up
 const startServer = async () => {
     try {
