@@ -34,7 +34,7 @@ services:
     volumes:
       - 'mongodb_api:/data/db'
       - './init-mongo/api-init.js:/docker-entrypoint-initdb.d/api-init.js:ro'
-    command: ["mongod", "--auth", "--bind_ip", "0.0.0.0"]
+    command: ["mongod", "--auth"]
 
   # AUTH SERVICE
   auth:
@@ -59,7 +59,7 @@ services:
     volumes:
       - 'mongodb_auth:/data/db'
       - './init-mongo/auth-init.js:/docker-entrypoint-initdb.d/auth-init.js:ro'
-    command: ["mongod", "--auth", "--bind_ip", "0.0.0.0"]
+    command: ["mongod", "--auth"]
 
   # NGINX
   nginx:
