@@ -1,5 +1,5 @@
 const express = require('express')
-const { port, host, db, apiUrl } = require("./config")
+const { port, host, MONGO_URL, apiUrl } = require("./config")
 const connectToDatabase = require('./dbConnect');
 
 // Setup app
@@ -12,7 +12,7 @@ const startServer = async () => {
 			app.listen(port, () => {
 				console.log(`Auth is now running on: ${port}`)
 				console.log(`Host address: ${host}`)
-				console.log(`Database: ${db}`)
+				console.log(`Database: ${MONGO_URL}`)
 				console.log(`Api url: ${apiUrl}`)
 			})
     } catch (error) {
@@ -20,15 +20,13 @@ const startServer = async () => {
     }
 }
 
-
-
 // Sample request to test auth service
 app.get('/test',(req, res) => {
 	res.send("Auth service is working")
 })
 
 // Sample response of a user
-app.get('/user',(req, res) => {
+app.get('/auth/user',(req, res) => {
 	res.json({
 		id: 123,
 		email: 'foo@goo.com'

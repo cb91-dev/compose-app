@@ -45,4 +45,4 @@ Sample auth service currently is a using express, mongoose and axios
     "nodemon": "^3.1.0"
 
 ### Nginx
-To complete this part you will need to update your local host file to the value in nginx.conf.prod
+To complete this part you will need to update your local host file to the value (server_name) in nginx.conf.prod

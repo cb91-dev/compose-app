@@ -8,7 +8,7 @@ server {
     location / {
         # Proxy all requests hitting the root URL to the front-end service running on port 3000
         proxy_pass http://front-end:3000;
-        # Use HTTP 1.1 for the proxied request
+        # Use HTTP 1.1 for the proxied request;
         proxy_http_version 1.1;
         # Upgrade the connection for WebSocket support
         proxy_set_header Upgrade $http_upgrade;
@@ -21,7 +21,9 @@ server {
     }
 
     # Configuration for API requests under "/api/"
-    location /api/ {
+    location /api {
+        # This rewrite directive strips '/api' from the URI, making '/api/user' simply '/user'
+        rewrite ^/api/(.*) /$1 break;
         # Proxy API requests to the API service running on port 3001
         proxy_pass http://api:3001;
         # Use HTTP 1.1 for the proxied request
@@ -37,7 +39,9 @@ server {
     }
 
     # Configuration for Authentication requests under "/auth/"
-    location /auth/ {
+    location /auth {
+        # This rewrite directive strips '/auth' from the URI, making '/auth/user' simply '/user'
+        rewrite ^/auth/(.*) /$1 break;
         # Proxy authentication requests to the Auth service running on port 3002
         proxy_pass http://auth:3002;
         # Use HTTP 1.1 for the proxied request
@@ -47,4 +51,8 @@ server {
         # Set the real IP of the client
         proxy_set_header X-Real-IP $remote_addr;
         # Include the real IP in the 'X-Forwarded-For' header
-        proxy_set_header X-Forwarded-For $proxy_add_x
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # Include the scheme (http or https) used by the client in the 'X-Forwarded-Proto' header
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
